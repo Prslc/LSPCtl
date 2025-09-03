@@ -1,0 +1,1 @@
+pub const MODULE_DB: &str = "/data/adb/lspd/config/modules_config.db";

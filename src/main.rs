@@ -1,5 +1,6 @@
 mod utils;
 mod module;
+mod constants;
 
 use module::{select_module, switch_module};
 

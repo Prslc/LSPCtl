@@ -1,9 +1,11 @@
+use crate::constants::MODULE_DB;
+
 use rusqlite::{Connection, params};
 use prettytable::{Table, Row, Cell, format};
 
 // select all module
 pub fn select_module() -> rusqlite::Result<()> {
-    let conn = Connection::open("/data/adb/lspd/config/modules_config.db")?;
+    let conn = Connection::open(MODULE_DB)?;
 
     let mut table = Table::new();
     table.set_format(*format::consts::FORMAT_NO_LINESEP_WITH_TITLE);
@@ -35,7 +37,7 @@ pub fn select_module() -> rusqlite::Result<()> {
 }
 
 pub fn switch_module(pack_name: &str, status: i32) -> rusqlite::Result<()> {
-    let conn = Connection::open("/data/adb/lspd/config/modules_config.db")?;
+    let conn = Connection::open(MODULE_DB)?;
     conn.execute(
         "UPDATE modules SET enabled = ?1 WHERE module_pkg_name = ?2",
         params![status, pack_name],
