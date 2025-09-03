@@ -1,3 +1,66 @@
-fn main() {
-    println!("Hello, world!");
+mod utils;
+mod module;
+
+use module::{select_module, switch_module};
+
+fn main() -> rusqlite::Result<()> {
+    let args: Vec<String> = std::env::args().collect();
+
+    if args.len() < 2 {
+        print_usage();
+        return Ok(());
+    }
+
+    match args[1].as_str() {
+        "list" => {
+            select_module()?;
+        }
+        "module" => {
+            if args.len() < 3 {
+                eprintln!("Error: Please provide a subcommand for 'module'.");
+                print_module_usage();
+            } else {
+                match args[2].as_str() {
+                    "enable" | "disable" => {
+                        if args.len() < 4 {
+                            eprintln!("Error: Please provide a module name.");
+                        } else {
+                            let pack_name = &args[3];
+                            let status = if args[2] == "enable" { 1 } else { 0 };
+                            match switch_module(pack_name, status) {
+                                Ok(_) => println!(
+                                    "{} {}",
+                                    pack_name,
+                                    if status == 1 { "is enabled" } else { "is disabled" }
+                                ),
+                                Err(e) => eprintln!("Failed to {} '{}': {}", args[2], pack_name, e),
+                            }
+                        }
+                    }
+                    _ => {
+                        eprintln!("Unknown subcommand for 'module': '{}'", args[2]);
+                        print_module_usage();
+                    }
+                }
+            }
+        }
+        _ => {
+            eprintln!("Unknown command: '{}'", args[1]);
+            print_usage();
+        }
+    }
+
+    Ok(())
+}
+
+fn print_usage() {
+    eprintln!("Usage:");
+    eprintln!("  SLCM list");
+    eprintln!("  SLCM module <enable|disable> <module_name>");
+}
+
+fn print_module_usage() {
+    eprintln!("Module subcommands:");
+    eprintln!("  SLCM module enable <module_name>");
+    eprintln!("  SLCM module disable <module_name>");
 }

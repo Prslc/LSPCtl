@@ -2,5 +2,13 @@
 name = "SLMC"
 version = "0.1.0"
 edition = "2024"
+author = "Prslc"
 
 [dependencies]
+prettytable-rs = "0.10.0"
+rusqlite = { version = "0.37.0", features = ["bundled"] }
+
+[profile.release]
+opt-level = "z"
+lto = true
+strip = true
