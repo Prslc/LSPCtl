@@ -28,17 +28,8 @@ fn main() -> rusqlite::Result<()> {
                         } else {
                             let pack_name = &args[3];
                             let status = if args[2] == "enable" { 1 } else { 0 };
-                            match switch_module(pack_name, status) {
-                                Ok(_) => println!(
-                                    "{} {}",
-                                    pack_name,
-                                    if status == 1 {
-                                        "is enabled"
-                                    } else {
-                                        "is disabled"
-                                    }
-                                ),
-                                Err(e) => eprintln!("Failed to {} '{}': {}", args[2], pack_name, e),
+                            if let Err(e) = switch_module(pack_name, status) {
+                                eprintln!("Failed to {} '{}': {}", args[2], pack_name, e);
                             }
                         }
                     }
