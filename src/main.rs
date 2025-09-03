@@ -1,6 +1,6 @@
-mod utils;
-mod module;
 mod constants;
+mod module;
+mod utils;
 
 use module::{select_module, switch_module};
 
@@ -13,15 +13,15 @@ fn main() -> rusqlite::Result<()> {
     }
 
     match args[1].as_str() {
-        "list" => {
-            select_module()?;
-        }
         "module" => {
             if args.len() < 3 {
                 eprintln!("Error: Please provide a subcommand for 'module'.");
                 print_module_usage();
             } else {
                 match args[2].as_str() {
+                    "list" => {
+                        select_module()?;
+                    }
                     "enable" | "disable" => {
                         if args.len() < 4 {
                             eprintln!("Error: Please provide a module name.");
@@ -32,7 +32,11 @@ fn main() -> rusqlite::Result<()> {
                                 Ok(_) => println!(
                                     "{} {}",
                                     pack_name,
-                                    if status == 1 { "is enabled" } else { "is disabled" }
+                                    if status == 1 {
+                                        "is enabled"
+                                    } else {
+                                        "is disabled"
+                                    }
                                 ),
                                 Err(e) => eprintln!("Failed to {} '{}': {}", args[2], pack_name, e),
                             }
@@ -56,12 +60,14 @@ fn main() -> rusqlite::Result<()> {
 
 fn print_usage() {
     eprintln!("Usage:");
-    eprintln!("  SLCM list");
-    eprintln!("  SLCM module <enable|disable> <module_name>");
+    eprintln!("  SLCM module <subcommand>");
+    eprintln!();
+    print_module_usage();
 }
 
 fn print_module_usage() {
     eprintln!("Module subcommands:");
-    eprintln!("  SLCM module enable <module_name>");
-    eprintln!("  SLCM module disable <module_name>");
+    eprintln!("  list");
+    eprintln!("  enable <module_name>");
+    eprintln!("  disable <module_name>");
 }
