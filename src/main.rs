@@ -3,6 +3,7 @@ mod module;
 mod utils;
 
 use module::{select_module, switch_module};
+use utils::print_query_results;
 
 fn main() -> rusqlite::Result<()> {
     let args: Vec<String> = std::env::args().collect();
@@ -16,7 +17,7 @@ fn main() -> rusqlite::Result<()> {
         "module" => {
             if args.len() < 3 {
                 eprintln!("Error: Please provide a subcommand for 'module'.");
-                print_module_usage();
+                print_sub_usage();
             } else {
                 match args[2].as_str() {
                     "list" => {
@@ -35,8 +36,27 @@ fn main() -> rusqlite::Result<()> {
                     }
                     _ => {
                         eprintln!("Unknown subcommand for 'module': '{}'", args[2]);
-                        print_module_usage();
+                        print_sub_usage();
                     }
+                }
+            }
+        }
+        "debug" => {
+            if args.len() < 3 {
+                eprintln!("Error: Please provide a subcommand for 'debug'.");
+                print_sub_usage();
+            } else {
+                match args[2].as_str() {
+                    "sql" => {
+                        if args.len() < 4 {
+                            eprintln!("Error: SQL command is empty.");
+                            print_sub_usage();
+                        } else {
+                            let sql_command = &args[3];
+                            print_query_results(sql_command)?;
+                        }
+                    }
+                    _ => print_sub_usage(),
                 }
             }
         }
@@ -52,13 +72,16 @@ fn main() -> rusqlite::Result<()> {
 fn print_usage() {
     eprintln!("Usage:");
     eprintln!("  SLCM module <subcommand>");
+    eprintln!("  SLCM debug <subcommand>");
     eprintln!();
-    print_module_usage();
+    print_sub_usage();
 }
 
-fn print_module_usage() {
+fn print_sub_usage() {
     eprintln!("Module subcommands:");
     eprintln!("  list");
     eprintln!("  enable <module_name>");
-    eprintln!("  disable <module_name>");
+    eprintln!("  disable <module_name>\n");
+    eprintln!("Debug subcommands:");
+    eprintln!("  sql <sql_command>");
 }
