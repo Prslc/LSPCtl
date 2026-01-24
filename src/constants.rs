@@ -1,1 +1,5 @@
-pub const MODULE_DB: &str = "/home/prslc/repo/Simple_LSPosedModule_Control/modules_config.db";
+#[cfg(debug_assertions)]
+pub const MODULE_DB: &str = "./modules_config.db";
+
+#[cfg(not(debug_assertions))]
+pub const MODULE_DB: &str = "/data/adb/lspd/config/modules_config.db";
