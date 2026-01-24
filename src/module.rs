@@ -1,16 +1,32 @@
-use crate::constants::MODULE_DB;
+use rusqlite::{Connection, params, Result};
 
-use prettytable::{Cell, Row, Table, format};
-use rusqlite::{Connection, params};
+#[derive(Debug, Clone, Copy)]
+pub enum ModuleStatus {
+    Enabled,
+    Disabled,
+    Unknown
+}
 
-// select all module
-pub fn select_module() -> rusqlite::Result<()> {
-    let conn = Connection::open(MODULE_DB)?;
+impl ModuleStatus {
+    pub fn from_i32(value: i32) -> Self {
+        match value {
+            0 => ModuleStatus::Disabled,
+            1 => ModuleStatus::Enabled,
+            _ => ModuleStatus::Unknown,
+        }
+    }
 
-    let mut table = Table::new();
-    table.set_format(*format::consts::FORMAT_NO_LINESEP_WITH_TITLE);
-    table.set_titles(Row::new(vec![Cell::new("Module"), Cell::new("Status")]));
+    pub fn as_str(&self) -> &'static str {
+        match self {
+            ModuleStatus::Disabled => "Disabled ❌",
+            ModuleStatus::Enabled =>  "Enabled  ✅",
+            ModuleStatus::Unknown =>  "Unknown  ⚠️"
+        }
+    }
+}
 
+// select all modules
+pub fn list_modules(conn: &Connection) -> Result<()> {
     let mut stmt = conn.prepare(
         "SELECT module_pkg_name, enabled
         FROM modules
@@ -20,38 +36,47 @@ pub fn select_module() -> rusqlite::Result<()> {
 
     let module_iter = stmt.query_map([], |row| {
         let name: String = row.get(0)?;
-        let enabled: i32 = row.get(1)?;
-        Ok((name, enabled))
+        let status = ModuleStatus::from_i32(row.get(1)?);
+        Ok((name, status))
     })?;
 
+    // collect data to compute column widths
+    let mut rows = vec![];
+    let mut name_width = "Module".len();
+    let mut status_width = "Status".len();
+
     for module in module_iter {
-        let (name, enabled) = module?;
-        let status = if enabled == 1 {
-            "Enabled  ✅"
-        } else {
-            "Disabled ❌"
-        };
-        table.add_row(Row::new(vec![Cell::new(&name), Cell::new(status)]));
+        let (name, status) = module?;
+        name_width = name_width.max(name.len());
+        status_width = status_width.max(status.as_str().len());
+        rows.push((name, status));
     }
 
-    table.printstd();
+    // header
+    println!("{:<name_width$}  {:<status_width$}", "Module", "Status", name_width = name_width, status_width = status_width);
+    println!("{:-<name_width$}  {:-<status_width$}", "", "", name_width = name_width, status_width = status_width);
+
+    // rows
+    for (name, status) in rows {
+        println!("{:<name_width$}  {:<status_width$}", name, status.as_str(), name_width = name_width, status_width = status_width);
+    }
 
     Ok(())
 }
 
-pub fn switch_module(pack_name: &str, status: i32) -> rusqlite::Result<()> {
-    let conn = Connection::open(MODULE_DB)?;
-    conn.execute(
+pub fn switch_module(conn: &Connection, pack_name: &str, status: i32) -> Result<()> {
+    let affected = conn.execute(
         "UPDATE modules SET enabled = ?1 WHERE module_pkg_name = ?2",
         params![status, pack_name],
     )?;
 
-    println!(
-        "{} {}",
-        pack_name,
-        if status == 1 { "is enabled" } else { "is disabled" }
-    );
+    let status_enum = ModuleStatus::from_i32(status);
+
+    if affected == 0 {
+        eprintln!("Warning: module '{}' not found", pack_name);
+    } else {
+        println!("{} {}", pack_name, status_enum.as_str());
+    }
 
     Ok(())
 }
-

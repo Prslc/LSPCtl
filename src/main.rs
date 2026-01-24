@@ -3,8 +3,10 @@ mod module;
 mod utils;
 
 use clap::{Parser, Subcommand};
-use module::{select_module, switch_module};
-use utils::print_query_results;
+use module::{list_modules, switch_module};
+use utils::show_query_results;
+use rusqlite::{Connection};
+use crate::constants::MODULE_DB;
 
 #[derive(Parser)]
     #[command(name = "slcm", version, about = "Simple LSPosed Module Control")]
@@ -23,12 +25,12 @@ use utils::print_query_results;
 
 fn main() -> rusqlite::Result<()> {
     let cli = Cli::parse();
-
-   match cli.command {
-        Command::ModuleList => select_module()?,
-        Command::ModuleEnable { name } => switch_module(&name, 1)?,
-        Command::ModuleDisable { name } => switch_module(&name, 0)?,
-        Command::DebugSql { sql } => print_query_results(&sql)?,
+    let conn = Connection::open(MODULE_DB)?;
+    match cli.command {
+        Command::ModuleList => list_modules(&conn)?,
+        Command::ModuleEnable { name } => switch_module(&conn, &name, 1)?,
+        Command::ModuleDisable { name } => switch_module(&conn, &name, 0)?,
+        Command::DebugSql { sql } => show_query_results(&sql)?,
     }
 
     Ok(())

@@ -1,1 +1,1 @@
-pub const MODULE_DB: &str = "/data/adb/lspd/config/modules_config.db";
+pub const MODULE_DB: &str = "/home/prslc/repo/Simple_LSPosedModule_Control/modules_config.db";
