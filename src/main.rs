@@ -9,7 +9,7 @@ use rusqlite::Connection;
 use utils::show_query_results;
 
 #[derive(Parser)]
-#[command(name = "slcm", version, about = "Simple LSPosed Module Control")]
+#[command(name = "LSPCtl", version, about = "Simple LSPosed Module Control")]
 pub struct Cli {
     #[command(subcommand)]
     pub command: Command,
