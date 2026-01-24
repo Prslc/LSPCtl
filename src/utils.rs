@@ -18,7 +18,10 @@ pub fn show_query_results(sql_command: &str) -> Result<()> {
 
     // header
     println!("{}", column_names.join(" | "));
-    println!("{}", "-".repeat(column_names.iter().map(|s| s.len() + 3).sum()));
+    println!(
+        "{}",
+        "-".repeat(column_names.iter().map(|s| s.len() + 3).sum())
+    );
 
     let rows = stmt.query_map([], |row| {
         let values: Result<Vec<String>, rusqlite::Error> = (0..column_count)

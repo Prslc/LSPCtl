@@ -1,10 +1,10 @@
-use rusqlite::{Connection, params, Result};
+use rusqlite::{Connection, Result, params};
 
 #[derive(Debug, Clone, Copy)]
 pub enum ModuleStatus {
     Enabled,
     Disabled,
-    Unknown
+    Unknown,
 }
 
 impl ModuleStatus {
@@ -19,8 +19,8 @@ impl ModuleStatus {
     pub fn as_str(&self) -> &'static str {
         match self {
             ModuleStatus::Disabled => "Disabled ❌",
-            ModuleStatus::Enabled =>  "Enabled  ✅",
-            ModuleStatus::Unknown =>  "Unknown  ⚠️"
+            ModuleStatus::Enabled => "Enabled  ✅",
+            ModuleStatus::Unknown => "Unknown  ⚠️",
         }
     }
 }
@@ -53,12 +53,30 @@ pub fn list_modules(conn: &Connection) -> Result<()> {
     }
 
     // header
-    println!("{:<name_width$}  {:<status_width$}", "Module", "Status", name_width = name_width, status_width = status_width);
-    println!("{:-<name_width$}  {:-<status_width$}", "", "", name_width = name_width, status_width = status_width);
+    println!(
+        "{:<name_width$}  {:<status_width$}",
+        "Module",
+        "Status",
+        name_width = name_width,
+        status_width = status_width
+    );
+    println!(
+        "{:-<name_width$}  {:-<status_width$}",
+        "",
+        "",
+        name_width = name_width,
+        status_width = status_width
+    );
 
     // rows
     for (name, status) in rows {
-        println!("{:<name_width$}  {:<status_width$}", name, status.as_str(), name_width = name_width, status_width = status_width);
+        println!(
+            "{:<name_width$}  {:<status_width$}",
+            name,
+            status.as_str(),
+            name_width = name_width,
+            status_width = status_width
+        );
     }
 
     Ok(())
