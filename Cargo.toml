@@ -1,6 +1,6 @@
 [package]
 name = "LSPCtl"
-version = "0.1.2"
+version = "0.0.3"
 edition = "2024"
 
 [dependencies]
