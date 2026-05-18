@@ -17,20 +17,20 @@ pub struct Cli {
 
 #[derive(Subcommand)]
 pub enum Command {
-    ModuleList,
-    ModuleEnable { name: String },
-    ModuleDisable { name: String },
-    DebugSql { sql: String },
+    List,
+    Enable { name: String },
+    Disable { name: String },
+    Sql { sql: String },
 }
 
 fn main() -> rusqlite::Result<()> {
     let cli = Cli::parse();
     let conn = Connection::open(MODULE_DB)?;
     match cli.command {
-        Command::ModuleList => list_modules(&conn)?,
-        Command::ModuleEnable { name } => switch_module(&conn, &name, 1)?,
-        Command::ModuleDisable { name } => switch_module(&conn, &name, 0)?,
-        Command::DebugSql { sql } => show_query_results(&sql)?,
+        Command::List => list_modules(&conn)?,
+        Command::Enable { name } => switch_module(&conn, &name, 1)?,
+        Command::Disable { name } => switch_module(&conn, &name, 0)?,
+        Command::Sql { sql } => show_query_results(&sql)?,
     }
 
     Ok(())

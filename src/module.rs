@@ -1,4 +1,4 @@
-use rusqlite::{Connection, Result, params};
+use rusqlite::{Connection, Result, params, OptionalExtension};
 
 #[derive(Debug, Clone, Copy)]
 pub enum ModuleStatus {
@@ -19,8 +19,8 @@ impl ModuleStatus {
     pub fn as_str(&self) -> &'static str {
         match self {
             ModuleStatus::Disabled => "Disabled ❌",
-            ModuleStatus::Enabled => "Enabled  ✅",
-            ModuleStatus::Unknown => "Unknown  ⚠️",
+            ModuleStatus::Enabled =>  "Enabled  ✅",
+            ModuleStatus::Unknown =>  "Unknown  ⚠️",
         }
     }
 }
@@ -29,7 +29,7 @@ impl ModuleStatus {
 pub fn list_modules(conn: &Connection) -> Result<()> {
     let mut stmt = conn.prepare(
         "SELECT module_pkg_name, enabled
-        FROM modules
+        FROM modules_state
         WHERE module_pkg_name != 'lspd'
         ORDER BY enabled DESC, module_pkg_name ASC",
     )?;
@@ -43,12 +43,11 @@ pub fn list_modules(conn: &Connection) -> Result<()> {
     // collect data to compute column widths
     let mut rows = vec![];
     let mut name_width = "Module".len();
-    let mut status_width = "Status".len();
+    let status_width = "Status".len().max(12);
 
     for module in module_iter {
         let (name, status) = module?;
         name_width = name_width.max(name.len());
-        status_width = status_width.max(status.as_str().len());
         rows.push((name, status));
     }
 
@@ -82,18 +81,34 @@ pub fn list_modules(conn: &Connection) -> Result<()> {
     Ok(())
 }
 
+// switch module state
 pub fn switch_module(conn: &Connection, pack_name: &str, status: i32) -> Result<()> {
-    let affected = conn.execute(
-        "UPDATE modules SET enabled = ?1 WHERE module_pkg_name = ?2",
-        params![status, pack_name],
-    )?;
+    let current_status: Option<i32> = conn
+    .query_row(
+        "SELECT enabled FROM modules_state WHERE module_pkg_name = ?1",
+        params![pack_name],
+        |row| row.get(0),
+    )
+    .optional()?;
 
     let status_enum = ModuleStatus::from_i32(status);
 
-    if affected == 0 {
-        eprintln!("Warning: module '{}' not found", pack_name);
-    } else {
-        println!("{} {}", pack_name, status_enum.as_str());
+    match current_status {
+        None => {
+            eprintln!("Error: module '{}' not found in database.", pack_name);
+        }
+        Some(current) => {
+            if current == status {
+                let status_msg = if status == 1 { "enabled" } else { "disabled" };
+                println!("Notice: Module '{}' is already {}.", pack_name, status_msg);
+            } else {
+                conn.execute(
+                    "UPDATE modules_state SET enabled = ?1 WHERE module_pkg_name = ?2",
+                    params![status, pack_name],
+                )?;
+                println!("{} -> {}", pack_name, status_enum.as_str());
+            }
+        }
     }
 
     Ok(())
