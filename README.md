@@ -25,10 +25,10 @@ It reads and writes LSPosed's `modules_config.db` database, letting you list, en
 ## Usage
 
 ```
-lspctl list                  List all modules and their status
-lspctl enable  <package>     Enable a module by package name
-lspctl disable <package>     Disable a module by package name
-lspctl sql    "<query>"      Run a raw SQL query against the module database
+LSPCtl list                  List all modules and their status
+LSPCtl enable  <package>     Enable a module by package name
+LSPCtl disable <package>     Disable a module by package name
+LSPCtl sql     "<query>"     Run a raw SQL query against the module database
 ```
 
 ## Build
